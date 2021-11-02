@@ -1,0 +1,16 @@
+{
+  "name": "simple",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "battle": "lux-ai-2021"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "lux": "^0.1.0"
+  },
+  "bin": "dist/index.js"
+}
