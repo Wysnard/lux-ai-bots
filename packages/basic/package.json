@@ -1,12 +1,13 @@
 {
-  "name": "simple",
+  "name": "basic",
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
-    "battle": "lux-ai-2021"
+    "start:dev": "tsc --watch --outDir dist"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
+    "nodemon": "^2.0.14",
     "typescript": "^4.4.4"
   },
   "dependencies": {

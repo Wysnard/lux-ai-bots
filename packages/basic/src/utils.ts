@@ -1,8 +1,8 @@
-import { CityTile, Position, Cell } from "lux";
+import { CityTile, Position, Cell, Cargo, Unit } from "lux";
 import { PosId } from "./typings";
 
 export const computePosId = (position: Position): PosId =>
-  `${position.x}_${position.x}`;
+  `${position.x}_${position.x}` as PosId;
 
 export type GetClosestPosParams = {
   origin: Position;
@@ -48,3 +48,12 @@ export const getCellAtPosId = ({ posId, mapCells }: GetCellAtPosIdParams) => {
   const position = parsePosId(posId);
   return mapCells[position.x][position.y];
 };
+
+export const cargoTotalLoad = (cargo: Cargo) =>
+  cargo.wood + cargo.coal + cargo.uranium;
+
+export const cellIsEmpty = (cell: Cell) =>
+  !cell.resource && !cell.citytile && !cell.road;
+
+export const unitCanBuildCity = (unit: Unit) =>
+  cargoTotalLoad(unit.cargo) >= 100;
