@@ -1,5 +1,6 @@
-import { CityTile, Position, Cell, Cargo, Unit } from "lux";
+import { CityTile, Position, Cell, Cargo, Unit } from "@lux-ai-bots/lux-sdk";
 import { PosId } from "./typings";
+import fs from "fs/promises";
 
 export const computePosId = (position: Position): PosId =>
   `${position.x}_${position.x}` as PosId;
@@ -55,5 +56,8 @@ export const cargoTotalLoad = (cargo: Cargo) =>
 export const cellIsEmpty = (cell: Cell) =>
   !cell.resource && !cell.citytile && !cell.road;
 
-export const unitCanBuildCity = (unit: Unit) =>
+export const unitHasEnoughResourceToBuildCity = (unit: Unit) =>
   cargoTotalLoad(unit.cargo) >= 100;
+
+export const logTo = (path: string) => (str: string) => fs.appendFile(path, str + "\n");
+

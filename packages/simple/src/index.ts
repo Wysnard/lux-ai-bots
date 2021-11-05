@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Agent, GameState, GAME_CONSTANTS, Cell, City, CityTile } from "lux";
+import { Agent, GameState, GAME_CONSTANTS, Cell, City, CityTile } from "@lux-ai-bots/lux-sdk";
 // any state can be stored between ticks by defining variable here
 // note that game objects are recreated every tick so make sure to update them
 

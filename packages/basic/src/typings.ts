@@ -1,4 +1,4 @@
-import { Position, Unit } from "lux";
+import { Position, Unit } from "@lux-ai-bots/lux-sdk";
 
 export type PosId = `${Position["x"]}_${Position["y"]}`;
 
