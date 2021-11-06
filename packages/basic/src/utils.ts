@@ -1,4 +1,4 @@
-import { CityTile, Position, Cell, Cargo, Unit } from "@lux-ai-bots/lux-sdk";
+import { CityTile, Position, Cell, Cargo, Unit, GAME_CONSTANTS } from "@lux-ai-bots/lux-sdk";
 import { PosId } from "./typings";
 import fs from "fs/promises";
 
@@ -61,3 +61,18 @@ export const unitHasEnoughResourceToBuildCity = (unit: Unit) =>
 
 export const logTo = (path: string) => (str: string) => fs.appendFile(path, str + "\n");
 
+export const computeUnitNextPosition = (unit: Unit, dir: 'n' | 'w' | 'e' | 's' | 'c' | null | string ): Position => {
+  const pos = unit.pos
+  switch(dir) {
+    case GAME_CONSTANTS.DIRECTIONS.NORTH:
+      return new Position(pos.x, pos.y - 1)
+    case GAME_CONSTANTS.DIRECTIONS.SOUTH:
+      return new Position(pos.x, pos.y + 1)
+    case GAME_CONSTANTS.DIRECTIONS.EAST:
+      return new Position(pos.x + 1, pos.y)
+    case GAME_CONSTANTS.DIRECTIONS.WEST:
+      return new Position(pos.x - 1, pos.y)
+    default:
+      return pos
+  }
+}
