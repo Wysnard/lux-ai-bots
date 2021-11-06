@@ -1,5 +1,5 @@
-import {Cell} from "./Cell";
-import {Position} from "./Position";
+import { Cell } from "./Cell";
+import { Position } from "./Position";
 
 export class GameMap {
   public width: number;
@@ -27,10 +27,16 @@ export class GameMap {
     return this.map[y][x];
   }
 
-  public _setResource(type: string, x: number, y: number, amount: number): void {
+  public _setResource(
+    type: string,
+    x: number,
+    y: number,
+    amount: number
+  ): void {
     const cell = this.getCell(x, y);
     cell.resource = {
-      type, amount
+      type,
+      amount,
     };
   }
 }

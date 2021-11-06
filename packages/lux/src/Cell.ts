@@ -1,5 +1,5 @@
-import {Position} from "./Position";
-import {CityTile} from "./CityTile";
+import { Position } from "./Position";
+import { CityTile } from "./CityTile";
 
 export interface Resource {
   type: string;
