@@ -1,12 +1,16 @@
-import * as LuxEngine from "@lux-ai/2021-challenge";
+import * as LuxEngine from "@lux-ai-bots/engine";
+import { GameMap, LuxMatchState } from "@lux-ai-bots/engine";
 import * as LuxSDK from "@lux-ai-bots/lux-sdk";
+import { GAME_CONSTANTS } from "@lux-ai-bots/lux-sdk";
+import R from "ramda";
 import { Match } from "dimensions-ai";
+import seedrandom from "seedrandom";
 
 const makePseudoMatch = (state: LuxSDK.GameState): Partial<Match> => {
-  // this.pseudomatch.configs.seed = replayData.seed;
-  // this.pseudomatch.configs.mapType = replayData.mapType;
-  // this.pseudomatch.configs.width = replayData.width;
-  // this.pseudomatch.configs.height = replayData.height;
+  // pseudomatch.configs.seed = replayData.seed;
+  // pseudomatch.configs.mapType = replayData.mapType;
+  // pseudomatch.configs.width = replayData.width;
+  // pseudomatch.configs.height = replayData.height;
   return {
     state,
     configs: {
@@ -14,7 +18,7 @@ const makePseudoMatch = (state: LuxSDK.GameState): Partial<Match> => {
       storeReplayDirectory: "/",
       runProfiler: false,
       debug: false,
-      seed: undefined,
+      seed: 21489218,
       mapType: LuxEngine.GameMap.Types.EMPTY,
       name: {} as any,
       loggingLevel: {} as any,
@@ -27,6 +31,8 @@ const makePseudoMatch = (state: LuxSDK.GameState): Partial<Match> => {
       storeMatchErrorLogs: {} as any,
       storeErrorDirectory: {} as any,
       detached: {} as any,
+      width: 2,
+      height: 2,
     },
     throw: (id: number, err: any) => Promise.resolve(undefined),
     sendAll: (message: string) => Promise.resolve(true),
@@ -72,11 +78,25 @@ interface SimulateNextTurnProps {
   }[];
 }
 
+// export const dimensionsAiToLuxSDKDTO = (
+//   matchState: LuxMatchState
+// ): LuxSDK.GameState => {
+//   return {
+//     map: (matchState.game.map as any).map,
+//     id: 1,
+//     players:
+//   };
+// };
+
 export const simulateNextTurn = ({
   currentGameState,
   actions,
 }: SimulateNextTurnProps): Promise<LuxSDK.GameState> => {
   const pseudomatch = makePseudoMatch(currentGameState);
+  console.log("state 1", JSON.stringify(pseudomatch.state, null, " "));
+  LuxEngine.LuxDesignLogic.initialize(pseudomatch as Match);
+  pseudomatch.state.game.state.turn = 3;
+  // console.log("state 2", JSON.stringify(pseudomatch.state, null, " "));
   return LuxEngine.LuxDesignLogic.update(pseudomatch as Match, actions).then(
     () => pseudomatch.state
   );

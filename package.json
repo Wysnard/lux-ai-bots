@@ -4,7 +4,7 @@
   "scripts": {
     "battle": "lux-ai-2021",
     "clean-replays": "cd replays && rm -rf *",
-    "test": "jest"
+    "test": "jest ./packages/lex-luthor/**/*.test.ts"
   },
   "devDependencies": {
     "@lux-ai/2021-challenge": "latest",

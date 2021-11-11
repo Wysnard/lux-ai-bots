@@ -8,19 +8,23 @@ describe("simulateNextTurn", () => {
 
   const iniGameState: LuxSDK.GameState = {
     id: 1,
-    turn: 1,
+    turn: 3,
     map: gameMap,
     players: [player0, player1],
   };
 
   test("testing without any actions", () => {
-    console.log("prev state", iniGameState);
+    // console.log("prev state", JSON.stringify(iniGameState, null, "  "));
     simulateNextTurn({
       currentGameState: iniGameState,
       actions: [],
-    }).then((nextState) => {
-      console.log("next state", nextState);
-      expect(nextState).toBeTruthy();
-    });
+    })
+      .then((nextState) => {
+        console.log("state 2", JSON.stringify(nextState, null, "  "));
+        expect(nextState).toBeTruthy();
+      })
+      .catch((err) => {
+        console.error("error", err);
+      });
   });
 });
