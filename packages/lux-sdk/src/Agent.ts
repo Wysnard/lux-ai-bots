@@ -158,6 +158,7 @@ export class Agent {
               uranium
             )
           );
+          console.error(`[${team}] ${unitid}`);
           break;
         }
         case INPUT_CONSTANTS.CITY: {
@@ -189,6 +190,9 @@ export class Agent {
           const road = update.nextFloat();
           this.gameState.map.getCell(x, y).road = road;
           break;
+        }
+        default: {
+          console.error(`Unknown input identifier: ${inputIdentifier}`);
         }
       }
     }

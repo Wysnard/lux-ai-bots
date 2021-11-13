@@ -98,5 +98,5 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": ["src"],
-  "references": [{ "path": "../lux" }]
+  "references": [{ "path": "../lux-sdk" }]
 }
