@@ -2,29 +2,25 @@ import { simulateNextTurn } from "./simulateNextTurn";
 import * as LuxSDK from "@lux-ai-bots/lux-sdk";
 
 describe("simulateNextTurn", () => {
-  const gameMap = new LuxSDK.GameMap(2, 2);
-  const player0 = new LuxSDK.Player(0);
-  const player1 = new LuxSDK.Player(1);
+  describe("simple state", () => {
+    const player0 = new LuxSDK.Player(0);
+    const player1 = new LuxSDK.Player(1);
+    const sdkState: LuxSDK.GameState = {
+      id: 2,
+      turn: 5,
+      map: new LuxSDK.GameMap(10, 10),
+      players: [player0, player1],
+    };
+    describe("without actions", () => {
+      const actions = [];
 
-  const iniGameState: LuxSDK.GameState = {
-    id: 1,
-    turn: 3,
-    map: gameMap,
-    players: [player0, player1],
-  };
-
-  test("testing without any actions", () => {
-    // console.log("prev state", JSON.stringify(iniGameState, null, "  "));
-    simulateNextTurn({
-      currentGameState: iniGameState,
-      actions: [],
-    })
-      .then((nextState) => {
-        console.log("state 2", JSON.stringify(nextState, null, "  "));
-        expect(nextState).toBeTruthy();
-      })
-      .catch((err) => {
-        console.error("error", err);
+      it("should increase turn count", async () => {
+        const nextSdkState = await simulateNextTurn({
+          currentGameState: sdkState,
+          actions,
+        });
+        expect(nextSdkState.turn).toBe(sdkState.turn + 1);
       });
+    });
   });
 });

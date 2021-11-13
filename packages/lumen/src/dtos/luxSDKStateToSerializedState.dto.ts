@@ -20,7 +20,7 @@ export const luxSDKStateToSerializedTeamState = (
           ...acc,
           [unit.id]: {
             cargo: unit.cargo,
-            cooldowm: unit.cooldown,
+            cooldown: unit.cooldown,
             x: unit.pos.x,
             y: unit.pos.y,
             type: unit.type,

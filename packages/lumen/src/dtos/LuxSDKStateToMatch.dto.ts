@@ -1,4 +1,3 @@
-import R from "ramda";
 import * as DimensionAI from "dimensions-ai";
 import * as LuxEngine from "@lux-ai/2021-challenge";
 import * as LuxSDK from "@lux-ai-bots/lux-sdk";
@@ -39,7 +38,7 @@ export const luxSDKStateToMatchDto = async (
   sdkState: LuxSDK.GameState
 ): Promise<DimensionAI.Match> => {
   const match = await luxdim.createMatch(["temp", "temp"], options);
-  const statefulDtoOut = luxSDKStateToSerializedStateDTO(sdkState);
-  LuxEngine.LuxDesignLogic.reset(match, statefulDtoOut);
+  const serializedState = luxSDKStateToSerializedStateDTO(sdkState);
+  LuxEngine.LuxDesignLogic.reset(match, serializedState);
   return match;
 };

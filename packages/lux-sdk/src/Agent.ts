@@ -158,7 +158,6 @@ export class Agent {
               uranium
             )
           );
-          console.error(`[${team}] ${unitid}`);
           break;
         }
         case INPUT_CONSTANTS.CITY: {
