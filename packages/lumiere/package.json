@@ -1,0 +1,21 @@
+{
+  "name": "@lux-ai-bots/lumiere",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wysnard/lux-ai-bots.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wysnard/lux-ai-bots/issues"
+  },
+  "homepage": "https://github.com/Wysnard/lux-ai-bots#readme"
+}

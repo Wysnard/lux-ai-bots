@@ -1,4 +1,3 @@
-const main = () => {};
 // Neuro--evolution
 // Algo genetic / NN
 
