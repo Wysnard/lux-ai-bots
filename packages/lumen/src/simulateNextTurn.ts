@@ -12,11 +12,13 @@ interface SimulateNextTurnProps {
 export const simulateNextTurn = async ({
   currentGameState,
   actions,
-}: SimulateNextTurnProps): Promise<LuxSDK.GameState> => {
+}: SimulateNextTurnProps): Promise<
+  [DimensionAI.Match.Status, LuxSDK.GameState]
+> => {
   const match = await luxSDKStateToMatchDto(currentGameState);
-  await match.step(actions);
+  const match_status = await match.step(actions);
   const serializedState = (
     match.state as LuxEngine.LuxMatchState
   ).game.toStateObject();
-  return serializedStateToSDKStateDTO(serializedState);
+  return [match_status, serializedStateToSDKStateDTO(serializedState)];
 };

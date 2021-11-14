@@ -36,4 +36,5 @@ export function computeAllScenario<T>(
           ])
       )
     );
+  return [mapper([])];
 }

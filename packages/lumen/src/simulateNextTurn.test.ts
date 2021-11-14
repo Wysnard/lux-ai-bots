@@ -11,7 +11,7 @@ describe("simulateNextTurn", () => {
       const actions = [];
 
       it("should increase turn count", async () => {
-        const nextSdkState = await simulateNextTurn({
+        const [, nextSdkState] = await simulateNextTurn({
           currentGameState: sdkState,
           actions,
         });
@@ -19,11 +19,11 @@ describe("simulateNextTurn", () => {
       });
 
       it("should increase turn count twice", async () => {
-        const nextSdkState = await simulateNextTurn({
+        const [, nextSdkState] = await simulateNextTurn({
           currentGameState: sdkState,
           actions,
         });
-        const nextNextSdkState = await simulateNextTurn({
+        const [, nextNextSdkState] = await simulateNextTurn({
           currentGameState: nextSdkState,
           actions,
         });
@@ -50,7 +50,7 @@ describe("simulateNextTurn", () => {
       const actions = [...player0Commands, ...player1Commands];
 
       it("should have moved the worker to the east", async () => {
-        const nextSdkState = await simulateNextTurn({
+        const [, nextSdkState] = await simulateNextTurn({
           currentGameState: sdkState,
           actions,
         });
@@ -74,7 +74,7 @@ describe("simulateNextTurn", () => {
       const actions = [...player0Commands, ...player1Commands];
 
       it("should have built a cityTile", async () => {
-        const nextSdkState = await simulateNextTurn({
+        const [, nextSdkState] = await simulateNextTurn({
           currentGameState: sdkState,
           actions,
         });
