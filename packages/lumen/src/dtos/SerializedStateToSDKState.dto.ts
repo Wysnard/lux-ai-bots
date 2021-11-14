@@ -23,9 +23,6 @@ const serializedMapToSDKMap = (
         cityWhichContainsXY?.citytiles?.find(
           (tile) => tile.pos.x === x && tile.pos.y === y
         ) || null;
-      if (newCell.citytile) {
-        console.log(newCell, x, y);
-      }
       newMap.map[y][x] = newCell;
     }
   }
