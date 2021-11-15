@@ -95,4 +95,9 @@ export class Unit {
   public pillage(): string {
     return `p ${this.id}`;
   }
+
+  public isOnMapBorder(gameMap: GameMap, border: "left" | "right"  | "top" | "bottom"): boolean {
+    const cell = gameMap.getCellByPos(this.pos);
+    return cell.isOnMapBorder(gameMap, border);
+  }
 }

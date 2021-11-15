@@ -1,4 +1,5 @@
 /** CityTile and Unit are both actionable and can return action strings to send to engine  */
+import { Player, City } from "./";
 import {Position} from "./Position";
 
 export class CityTile {
@@ -32,5 +33,9 @@ export class CityTile {
   /** returns command to ask this tile to build a cart this turn */
   public buildCart(): string {
     return `bc ${this.pos.x} ${this.pos.y}`;
+  }
+
+  public canBuild(player: Player, city: City): boolean {
+    return player.units.length < city.citytiles.length;
   }
 }
