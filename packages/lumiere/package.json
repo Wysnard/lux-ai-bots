@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Wysnard/lux-ai-bots/issues"
   },
-  "homepage": "https://github.com/Wysnard/lux-ai-bots#readme"
+  "homepage": "https://github.com/Wysnard/lux-ai-bots#readme",
+  "dependencies": {
+    "ramda": "^0.27.1"
+  }
 }

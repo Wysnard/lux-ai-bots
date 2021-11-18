@@ -10,3 +10,4 @@ export * from "./Position";
 export * from "./Unit";
 export * from "./io";
 export * from "./game_constants";
+export * from "./Command";
