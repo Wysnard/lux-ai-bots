@@ -11,7 +11,7 @@
     "@lux-ai/2021-challenge": "latest",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.6",
-    "@types/ramda": "^0.27.46",
+    "@types/ramda": "^0.27.50",
     "jest": "^27.3.1",
     "nodemon": "^2.0.14",
     "ts-jest": "^27.0.7",

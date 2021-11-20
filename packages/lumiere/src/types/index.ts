@@ -36,3 +36,10 @@ export type UpdateFn<O, S> = (state: S, observation: O) => S; // u : State -> Ob
 export interface Environment<O> {
   observation: O;
 }
+
+export interface MarkovDecisionProcess<O, S, A> {
+  getAction: Function;
+  discount_factor: number;
+  transitionProbaFn: (...args: any[]) => any; // compoute the probability that action a in state s in time t will lead to state s'
+  rewardFn: (...args: any[]) => any; // compoute the immediate reward or the immediate reward after transitionning to state s'
+}
