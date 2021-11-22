@@ -3,6 +3,8 @@ import _ from "lodash/fp";
 
 import { createUCBRepository, UCBRepository } from "../algorithm/UCB.algorithm";
 import {
+  CreateMonteCarloBranch,
+  createMonteCarloTree,
   CreateMonteCarloTree,
   getFlatKeyedOutComes,
   getOutComes,
@@ -13,8 +15,8 @@ import {
 import { PolicyFn, UpdateFn, ValueFn, MarkovDecisionProcess } from "../types";
 
 export interface MCTSDependencies<O, A> {
-  selection: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // Q(s,a): current estimate of the value of the state s
-  expansion: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // U(s,a): upper bound of the value of the state s
+  selection: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // Take a root state and return the next state if it is not a leaf otherwise return the input state
+  expansion: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // Take a leaf state, make an in-place by adding new branches and return the new state
   simulation: (state: MonteCarloTree<O>) => number; // rollout of the game until it reaches a terminal state then return the result
   backpropagation: (
     state: MonteCarloTree<O>,
@@ -22,7 +24,9 @@ export interface MCTSDependencies<O, A> {
   ) => MonteCarloTree<O>; // backpropagate the result of the simulation
 }
 
-export interface MCTSRepository<O, A> extends MCTSDependencies<O, A> {}
+export interface MCTSRepository<O, A> extends MCTSDependencies<O, A> {
+  simulation: (state: MonteCarloTree<O>) => number; // rollout of the game until it reaches a terminal state then return the result
+}
 
 // TODO: remove partial when all default dependencies are implemented in createMonteCarloProcessRepository
 export const createMCTSRepository = <O, A>({
@@ -58,7 +62,6 @@ export const makeMCTSRepository = <O, A>({
     const selection: MCTSRepository<O, A>["selection"] = (state) => {
       if (isExpandable(state)) {
         return state;
-        1;
       }
       const actionSelected = policyFn(state);
       const outcomeSelected = pickRandomWeightedOutcome(
@@ -75,57 +78,27 @@ export const makeMCTSRepository = <O, A>({
       simulate,
       getKeyFromAction,
       valueFn,
+      tree,
     }) =>
     (state) => {
       if (!isExpandable(state)) {
         throw new Error("The node is not expandable. Come back later boy");
       }
-      const agentActions = simulate.agentActions(state);
-      const opponentActions = simulate.opponentActions(state);
-
-      let newBranches: MonteCarloDecisionBranch<O> = {};
-
-      for (const agentAction of agentActions) {
-        const keyAction = getKeyFromAction(agentAction);
-        newBranches[keyAction] = Array.from({
-          length: opponentActions.length,
-        });
-        const mut = newBranches[keyAction];
-        for (let i = 0; i < mut.length; i++) {
-          const newOutcome = simulate.state(
-            state,
-            agentAction,
-            opponentActions[i]
-          );
-          mut[i] = newOutcome;
-          mut[i].expected_reward = valueFn(newOutcome);
-        }
-
-        const probas = transitionProbaFn(state, agentAction, mut);
-
-        for (let i = 0; i < mut.length; i++) {
-          mut[i].probability = probas[i];
-        }
-      }
+      const newBranches = tree.createBranches(state);
 
       state.branches = newBranches;
 
       return state;
     },
-  makeSimulation = ({
-    getKeyFromAction,
-    rolloutFn,
-    isTerminalState,
-    rewardFn,
-  }) => {
+  makeSimulation = (dep) => {
     const simulation = (state: MonteCarloTree<O>): number => {
-      if (isTerminalState(state)) {
-        return rewardFn(state);
+      if (dep.isTerminalState(state)) {
+        return dep.rewardFn(state);
       }
-      const actionSelected = rolloutFn(state);
-      const outcomeSelected = pickRandomWeightedOutcome(
-        state.branches[getKeyFromAction(actionSelected)]
-      );
+      const actionSelected = dep.rolloutFn(state);
+      const selectedBranch =
+        state.branches[dep.getKeyFromAction(actionSelected)];
+      const outcomeSelected = pickRandomWeightedOutcome(selectedBranch);
 
       return simulation(outcomeSelected);
     };
@@ -134,7 +107,10 @@ export const makeMCTSRepository = <O, A>({
   },
   makeBackpropagation = ({ valueFn }) =>
     (state: MonteCarloTree<O>, reward: number) => {
-      state.expected_reward = valueFn(state);
+      state.expected_reward =
+        state.expected_reward * state.visited +
+        valueFn(state) / state.visited +
+        1;
       state.win += reward;
       state.visited += 1;
       return state;
@@ -153,8 +129,9 @@ export interface MCMDP<O, A>
   transitionProbaFn?: (
     startState: MonteCarloTree<O>,
     action: A,
-    allEndStates: MonteCarloTree<O>[]
-  ) => number[];
+    endState: A,
+    allEndStates: readonly MonteCarloTree<O>[]
+  ) => number;
   discount_factor?: number;
 }
 
@@ -180,10 +157,13 @@ export interface MonteCarloProcessRepositoryDependencies<O, A>
     opponentActions: (state: MonteCarloTree<O>) => A[];
   };
   rewardFn: (state: MonteCarloTree<O>) => number;
+  isTerminalState: (state: MonteCarloTree<O>) => boolean;
   //
   isExpandable?: (state: MonteCarloTree<O>) => boolean;
-  isTerminalState?: (state: MonteCarloTree<O>) => boolean;
-  createMonteCarloTree?: CreateMonteCarloTree<O>;
+  tree?: {
+    createRoot: CreateMonteCarloTree<O>;
+    createBranches: CreateMonteCarloBranch<O>;
+  };
   ucb?: UCBRepository<MonteCarloTree<O>, A>;
   policyFn?: PolicyFn<MonteCarloTree<O>, A>; // select which action we should explore
   rolloutFn?: PolicyFn<MonteCarloTree<O>, A>;
@@ -192,12 +172,13 @@ export interface MonteCarloProcessRepositoryDependencies<O, A>
 }
 
 interface MonteCarloProcessMakers<O, A> {
-  mctsMaker: MCTSRepositoryMaker<O, A>;
+  mctsMaker?: MCTSRepositoryMaker<O, A>;
 }
 
 export interface MonteCarloProcessRepository<O, A>
-  extends MonteCarloProcessRepositoryDependencies<O, A> {
-  plan: (state: MonteCarloTree<O>) => MonteCarloTree<O>;
+  extends Required<MonteCarloProcessRepositoryDependencies<O, A>> {
+  mcts: MCTSRepository<O, A>;
+  plan: (state: MonteCarloTree<O>) => number;
   decide: (state: MonteCarloTree<O>) => A;
 }
 
@@ -210,15 +191,19 @@ export const createMonteCarloProcessRepository = <O, A>({
   simulate,
   getAction,
   model,
+  isTerminalState,
   //
   discount_factor = 0.3, //should be a value between 0 and 1
-  isTerminalState = (state) => rewardFn(state) !== 0,
   isExpandable = (state: MonteCarloTree<O>) =>
-    !!state.branches && rewardFn(state) === 0,
+    !!state.branches && !isTerminalState(state),
   valueFn = (state: MonteCarloTree<O>) =>
-    (1 - discount_factor) * model.value(state) +
-    discount_factor * state.win * state.visited, // give the expected_reward to the tree | TODO: complete the equation result : [-1:1]
-  transitionProbaFn = (startState, action, allEndStates) => {
+    (1 - discount_factor) * model.value(state) + discount_factor * state.win, // give the expected_reward to the tree | TODO: complete the equation result : [-1:1]
+  transitionProbaFn = (
+    startState,
+    agentAction,
+    opponentAction,
+    allEndStates
+  ) => {
     const opponentPositiveValues = allEndStates.map(
       (endState) => (-valueFn(endState) + 1) / 2
     );
@@ -226,20 +211,45 @@ export const createMonteCarloProcessRepository = <O, A>({
       (acc, positiveValue) => acc + positiveValue,
       0
     );
-    return valuesSum !== 0
-      ? opponentPositiveValues.map(
-          (opponentPositiveValue) => opponentPositiveValue / valuesSum
-        )
-      : allEndStates.map(() => 1 / allEndStates.length);
+    return 1 / allEndStates.length;
   }, // determine the probability of the next state
-  createMonteCarloTree = (observation: O) => ({
-    visited: 0,
-    win: 0,
-    probability: 0,
-    expected_reward: 0,
-    observation,
-    branches: {},
-  }),
+  tree = {
+    createRoot: createMonteCarloTree,
+    createBranches: (state) => {
+      const agentActions = simulate.agentActions(state);
+      const opponentActions = simulate.opponentActions(state);
+
+      let newBranches: MonteCarloDecisionBranch<O> = {};
+
+      for (const agentAction of agentActions) {
+        const keyAction = getKeyFromAction(agentAction);
+        newBranches[keyAction] = Array.from({
+          length: opponentActions.length,
+        });
+        const branch = newBranches[keyAction];
+        for (let i = 0; i < branch.length; i++) {
+          const newOutcome = simulate.state(
+            state,
+            agentAction,
+            opponentActions[i]
+          );
+          branch[i] = newOutcome;
+          branch[i].expected_reward = valueFn(newOutcome);
+        }
+
+        for (let i = 0; i < branch.length; i++) {
+          branch[i].probability = transitionProbaFn(
+            state,
+            agentAction,
+            opponentActions[i],
+            branch
+          );
+        }
+      }
+
+      return newBranches;
+    },
+  },
   ucb = createUCBRepository({
     exploitation: (state: MonteCarloTree<O>) =>
       (state.win * valueFn(state)) / state.visited,
@@ -258,16 +268,16 @@ export const createMonteCarloProcessRepository = <O, A>({
     ) as [A, MonteCarloTree<O>[]];
     return action_take;
   },
-  rolloutFn = policyFn,
+  rolloutFn = (state) => _.pipe(Object.keys, _.shuffle, _.head)(state.branches),
   updateFn = (state, observation) =>
     getOutComes(state).find((outcome) => outcome.observation === observation) ||
-    createMonteCarloTree({ observation } as any),
+    tree.createRoot(observation),
   mctsMaker = makeMCTSRepository({}),
 }: MonteCarloProcessRepositoryDependencies<O, A> &
   MonteCarloProcessMakers<O, A>): MonteCarloProcessRepository<O, A> => {
   const dependencies: Required<MonteCarloProcessRepositoryDependencies<O, A>> =
     {
-      createMonteCarloTree,
+      tree,
       discount_factor,
       getAction,
       getActionFromKey,
@@ -284,41 +294,31 @@ export const createMonteCarloProcessRepository = <O, A>({
       updateFn,
       ucb,
     };
-  const selection: MCTSRepository<O, A>["selection"] = (state) => {
-    if (isExpandable(state)) {
-      return state;
-    }
-    const actionSelected = policyFn(state);
-    const outcomeSelected = pickRandomWeightedOutcome(
-      state.branches[getKeyFromAction(actionSelected)]
-    );
-    return selection(outcomeSelected);
-  };
 
-  const mcts = createMCTSRepository({
+  const mcts = createMCTSRepository<O, A>({
     selection: mctsMaker.makeSelection(dependencies),
     expansion: mctsMaker.makeExpansion(dependencies),
     simulation: mctsMaker.makeSimulation(dependencies),
     backpropagation: mctsMaker.makeBackpropagation(dependencies),
   });
 
-  const plan = (state: MonteCarloTree<O>): MonteCarloTree<O> => {
+  const plan = (state: MonteCarloTree<O>): number => {
     // a function that explore possibilities without interacting with the environment (aka reasoning, pondering, thought, search, ...). It have to be called in a loop until you are constrained to stop or you reach a terminal state.
-    const expandableState = isExpandable(state)
-      ? mcts.expansion(state)
-      : plan(mcts.selection(state));
-
-    // simulation
-    const reward = mcts.simulation(expandableState);
+    const reward = !isExpandable(state)
+      ? //selection
+        plan(mcts.selection(state))
+      : // expansion then simulation
+        R.compose(mcts.simulation, mcts.expansion)(state);
 
     // backpropagation
-    const newState = mcts.backpropagation(expandableState, reward);
+    // const newState = mcts.backpropagation(state, reward);
 
-    return newState;
+    return reward;
   };
 
   return {
     ...dependencies,
+    mcts,
     plan,
     decide: (state: MonteCarloTree<O>) =>
       getActionFromKey(

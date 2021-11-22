@@ -16,11 +16,18 @@ export interface MonteCarloTree<O> {
 
 export type CreateMonteCarloTree<O> = (observation: O) => MonteCarloTree<O>;
 
-export type CreateMonteCarloBranch<O, A> = (
-  agentAction: A,
-  opponentActions: A[],
-  outcome: MonteCarloTree<O>
-) => MonteCarloTree<O>;
+export const createMonteCarloTree = <O>(observation: O) => ({
+  visited: 0,
+  win: 0,
+  probability: 0,
+  expected_reward: 0,
+  observation,
+  branches: {},
+});
+
+export type CreateMonteCarloBranch<O> = (
+  state: MonteCarloTree<O>
+) => MonteCarloDecisionBranch<O>;
 
 export const getOutComes = <O>(state: MonteCarloTree<O>) =>
   Object.values(state.branches).flatMap((branch) => branch);
@@ -32,12 +39,12 @@ export const getFlatKeyedOutComes = <O>(
 export const pickRandomWeightedOutcome = <O>(
   state: MonteCarloTree<O>[]
 ): MonteCarloTree<O> => {
-  const sum = state.reduce((acc, cur) => acc + cur.probability, 0);
-  const random = Math.random() * sum;
-  let current = 0;
+  const total = state.reduce((acc, curr) => acc + curr.probability, 0);
+  const random = Math.random();
+  let sum = 0;
   for (const outcome of state) {
-    current += outcome.probability;
-    if (current > random) {
+    sum += outcome.probability;
+    if (random < sum / total) {
       return outcome;
     }
   }
