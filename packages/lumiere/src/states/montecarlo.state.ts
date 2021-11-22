@@ -36,7 +36,7 @@ export const getFlatKeyedOutComes = <O>(
   state: MonteCarloTree<O>
 ): [string, MonteCarloTree<O>[]][] => Object.entries(state.branches);
 
-export const pickRandomWeightedOutcome = <O>(
+export const pickRandomWeightedOutcomeBranch = <O>(
   state: MonteCarloTree<O>[]
 ): MonteCarloTree<O> => {
   const total = state.reduce((acc, curr) => acc + curr.probability, 0);

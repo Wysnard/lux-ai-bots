@@ -3,14 +3,14 @@ import {
   createMonteCarloTree,
   getOutComes,
   MonteCarloTree,
-  pickRandomWeightedOutcome,
+  pickRandomWeightedOutcomeBranch,
 } from "../states/montecarlo.state";
 import {
   createMonteCarloProcessRepository,
-  createMCTSRepository,
   MonteCarloProcessRepository,
   MonteCarloProcessRepositoryDependencies,
 } from "./montecarlo.process";
+import { createMCTSRepository } from "../algorithm/MCTS.algorithm";
 
 describe("Monte Carlo Test", () => {
   describe("Rock paper scissors game", () => {
@@ -484,6 +484,74 @@ describe("Monte Carlo Test", () => {
           });
 
           it("should simulate", () => {
+            const simulatedState = repository.mcts.simulation(agentState);
+            expect(simulatedState).toBeDefined();
+          });
+
+          it("should be able to simulate 3 times", () => {
+            const simulatedState = repository.mcts.simulation(agentState);
+            expect(simulatedState).toBeDefined();
+            const simulatedState2 = repository.mcts.simulation(agentState);
+            expect(simulatedState2).toBeDefined();
+            const simulatedState3 = repository.mcts.simulation(agentState);
+            expect(simulatedState3).toBeDefined();
+          });
+        });
+      });
+    });
+
+    describe("3th Game State", () => {
+      const create3thState = () => {
+        const repository = createMonteCarloProcessRepository<
+          RockPaperScissorsGameEngine,
+          TAction
+        >({
+          rewardFn,
+          getKeyFromAction,
+          getActionFromKey,
+          getAction,
+          simulate,
+          model,
+          isTerminalState,
+          transitionProbaFn,
+        });
+        const agentState = repository.tree.createRoot(
+          RockPaperScissorsGameEngine.create({
+            turn: 3,
+            score: { agent: 1, opponent: 2 },
+          })
+        );
+        const agent = new Agent(agentState);
+
+        return {
+          repository,
+          agentState,
+          agent,
+        };
+      };
+
+      beforeEach(() => {
+        const state = create3thState();
+        repository = state.repository;
+        agentState = state.agentState;
+        agent = state.agent;
+      });
+
+      it("should be the 3rd turn", () => {
+        expect(agentState.observation.turn).toBe(3);
+      });
+
+      describe("Monte carlo Search Tree", () => {
+        describe("Simulation", () => {
+          beforeEach(() => {
+            const LastTurnState = create3thState();
+            repository = LastTurnState.repository;
+            agentState = LastTurnState.agentState;
+            agent = LastTurnState.agent;
+            agentState = repository.mcts.expansion(agent.state);
+          });
+
+          it.only("should simulate", () => {
             const simulatedState = repository.mcts.simulation(agentState);
             expect(simulatedState).toBeDefined();
           });
