@@ -1,7 +1,15 @@
 import * as LuxEngine from "@lux-ai/2021-challenge";
 import * as LuxSDK from "@lux-ai-bots/lux-sdk";
 
-// computeAllScenario(gameState, simulateNextTurn)
+/**
+ *
+ * @param gameState
+ * @param mapper
+ * @returns {string[]}
+ *
+ * @todo Compute all possible Game State.
+ * @body Take a game state and return all possible Game State from a root game state. It takes the original game state and a mapper to compute in a optimize way the possibilities.
+ */
 export function computeAllScenario<T>(
   gameState: LuxSDK.GameState,
   mapper: (actions: string[]) => T
