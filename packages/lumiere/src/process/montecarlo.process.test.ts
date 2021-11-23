@@ -1,16 +1,13 @@
 import _ from "lodash";
 import {
-  createMonteCarloTree,
-  getOutComes,
+  createMonteCarloRootTree,
   MonteCarloTree,
-  pickRandomWeightedOutcomeBranch,
 } from "../states/montecarlo.state";
 import {
   createMonteCarloProcessRepository,
   MonteCarloProcessRepository,
   MonteCarloProcessRepositoryDependencies,
 } from "./montecarlo.process";
-import { createMCTSRepository } from "../algorithm/MCTS.algorithm";
 
 describe("Monte Carlo Test", () => {
   describe("Rock paper scissors game", () => {
@@ -154,7 +151,7 @@ describe("Monte Carlo Test", () => {
       TAction
     >["simulate"] = {
       state: (state, agentAction, opponentAction) =>
-        createMonteCarloTree(
+        createMonteCarloRootTree(
           RockPaperScissorsGameEngine.update(
             state.observation,
             agentAction,
@@ -544,14 +541,14 @@ describe("Monte Carlo Test", () => {
       describe("Monte carlo Search Tree", () => {
         describe("Simulation", () => {
           beforeEach(() => {
-            const LastTurnState = create3thState();
-            repository = LastTurnState.repository;
-            agentState = LastTurnState.agentState;
-            agent = LastTurnState.agent;
+            const thirdTurnState = create3thState();
+            repository = thirdTurnState.repository;
+            agentState = thirdTurnState.agentState;
+            agent = thirdTurnState.agent;
             agentState = repository.mcts.expansion(agent.state);
           });
 
-          it.only("should simulate", () => {
+          it("should simulate", () => {
             const simulatedState = repository.mcts.simulation(agentState);
             expect(simulatedState).toBeDefined();
           });

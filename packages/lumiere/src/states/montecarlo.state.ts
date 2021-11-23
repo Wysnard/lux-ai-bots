@@ -14,20 +14,57 @@ export interface MonteCarloTree<O> {
   branches: MonteCarloDecisionBranch<O>;
 }
 
-export type CreateMonteCarloTree<O> = (observation: O) => MonteCarloTree<O>;
+export type ObservationNeeded<O> = Pick<MonteCarloTree<O>, "observation"> &
+  Partial<Omit<MonteCarloTree<O>, "observation">>;
 
-export const createMonteCarloTree = <O>(observation: O) => ({
-  visited: 0,
-  win: 0,
-  probability: 0,
-  expected_reward: 0,
+export type CreateMonteCarloTree<O> = (
+  tree: ObservationNeeded<O>
+) => MonteCarloTree<O>;
+
+export const createMonteCarloTree = <O>({
+  visited = 0,
+  win = 0,
+  probability = 0,
+  expected_reward = 0,
   observation,
-  branches: {},
+  branches = {},
+}: ObservationNeeded<O>) => ({
+  visited,
+  win,
+  probability,
+  expected_reward,
+  observation,
+  branches,
 });
+
+export type CreateMonteCarloRootTree<O> = (observation: O) => MonteCarloTree<O>;
+
+export const createMonteCarloRootTree = <O>(observation: O) =>
+  createMonteCarloTree<O>({ observation });
 
 export type CreateMonteCarloBranch<O> = (
   state: MonteCarloTree<O>
 ) => MonteCarloDecisionBranch<O>;
+
+export interface MonteCarloTreeDependencies<O> {
+  createTree?: CreateMonteCarloTree<O>;
+  createRoot?: CreateMonteCarloRootTree<O>;
+  createBranches: CreateMonteCarloBranch<O>;
+}
+
+export type MonteCarloTreeRepository<O> = Required<
+  MonteCarloTreeDependencies<O>
+>;
+
+export const createMonteCarloTreeRepository = <O>({
+  createTree = createMonteCarloTree,
+  createRoot = (observation: O) => createMonteCarloTree<O>({ observation }),
+  createBranches,
+}: MonteCarloTreeDependencies<O>): MonteCarloTreeRepository<O> => ({
+  createTree,
+  createRoot,
+  createBranches,
+});
 
 export const getOutComes = <O>(state: MonteCarloTree<O>) =>
   Object.values(state.branches).flatMap((branch) => branch);
