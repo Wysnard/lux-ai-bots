@@ -25,6 +25,20 @@ export const createComplexSDKState = (): LuxSDK.GameState => {
       0
     )
   );
+  const unit_id_5 = "u_5";
+  player0.units.push(
+    new LuxSDK.Unit(
+      1,
+      LuxSDK.GAME_CONSTANTS.UNIT_TYPES.WORKER,
+      unit_id_5,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    )
+  );
   const player1 = new LuxSDK.Player(1);
   const city_id_2 = "c_2";
   player1.cities.set(city_id_2, new LuxSDK.City(1, city_id_2, 120, 100));

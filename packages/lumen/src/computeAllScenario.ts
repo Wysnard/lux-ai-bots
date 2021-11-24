@@ -1,6 +1,7 @@
 import * as LuxEngine from "@lux-ai/2021-challenge";
 import * as LuxSDK from "@lux-ai-bots/lux-sdk";
 
+
 /**
  *
  * @param gameState
@@ -15,10 +16,10 @@ export function computeAllScenario<T>(
   mapper: (actions: string[]) => T
 ): T[] {
   const [player0UnitActions, player1UnitActions] = gameState.players.map(
-    (player) =>
+    (player, i) =>
       player.units
         .filter((unit) => unit.canAct())
-        .flatMap((unit) =>
+        .map((unit) =>
           [
             // TODO: add conditions to directions wtih concat
             unit.move(LuxSDK.GAME_CONSTANTS.DIRECTIONS.NORTH),
@@ -31,12 +32,13 @@ export function computeAllScenario<T>(
             .concat(unit.isWorker() ? unit.pillage() : [])
         )
   );
+
   const [player0CityTileActions, player1CityTileActions] =
-    gameState.players.map((player) =>
+    gameState.players.map((player, i) =>
       Array.from(player.cities.values()).flatMap((city) =>
         city.citytiles
           .filter((cityTile) => cityTile.canAct())
-          .flatMap((cityTile) => [
+          .map((cityTile) => [
             cityTile.research(),
             //  TODO: add conditions to build  with concat
             cityTile.buildWorker(),
@@ -44,5 +46,13 @@ export function computeAllScenario<T>(
           ])
       )
     );
-  return [mapper([])];
+
+    const allScenarios = [
+      ...[...player0UnitActions, ...player0CityTileActions],
+      ...[...player1UnitActions, ...player1CityTileActions],
+    ].reduce((scenarios, playerActions) =>
+      scenarios.reduce((scenari, actions) =>
+        scenari.concat(playerActions.map(action => [].concat(actions, action))), []));
+  
+    return [mapper(allScenarios)];
 }
