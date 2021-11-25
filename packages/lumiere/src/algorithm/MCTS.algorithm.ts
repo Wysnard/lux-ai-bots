@@ -1,21 +1,22 @@
 import {
+  ExpandedMonteCarloTree,
   MonteCarloTree,
   pickRandomWeightedOutcomeBranch,
 } from "../states/montecarlo.state";
 import { MonteCarloProcessRepositoryDependencies } from "../process/montecarlo.process";
 
 export interface MCTSDependencies<O, A> {
-  selection: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // Take a root state and return the next state if it is not a leaf otherwise return the input state
-  expansion: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // Take a leaf state, make an in-place by adding new branches and return the new state
-  simulation: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // rollout of the game until it reaches a terminal state then return the terminal state
+  selection: (state: ExpandedMonteCarloTree<O, A>) => MonteCarloTree<O, A>; // Take a root state and return the next state if it is not a leaf otherwise return the input state
+  expansion: (state: MonteCarloTree<O, A>) => ExpandedMonteCarloTree<O, A>; // Take a leaf state, make an in-place by adding new branches and return the new state
+  simulation: (state: MonteCarloTree<O, A>) => MonteCarloTree<O, A>; // rollout of the game until it reaches a terminal state then return the terminal state
   backpropagation: (
-    state: MonteCarloTree<O>,
-    terminalState: MonteCarloTree<O>
-  ) => MonteCarloTree<O>; // backpropagate the result of the simulation
+    state: MonteCarloTree<O, A>,
+    terminalState: MonteCarloTree<O, A>
+  ) => MonteCarloTree<O, A>; // backpropagate the result of the simulation
 }
 
 export interface MCTSRepository<O, A> extends MCTSDependencies<O, A> {
-  simulation: (state: MonteCarloTree<O>) => MonteCarloTree<O>; // rollout of the game until it reaches a terminal state then return the terminal state
+  simulation: (state: MonteCarloTree<O, A>) => MonteCarloTree<O, A>; // rollout of the game until it reaches a terminal state then return the terminal state
 }
 
 export const createMCTSRepository = <O, A>({
@@ -47,14 +48,16 @@ export interface MCTSRepositoryMaker<O, A> {
 }
 
 export const makeMCTSRepository = <O, A>({
-  makeSelection = ({ isExpandable, policyFn, getKeyFromAction }) =>
+  makeSelection = ({
+      isExpandable,
+      isTerminalState,
+      policyFn,
+      getKeyFromAction,
+    }) =>
     (state) => {
-      if (isExpandable(state)) {
-        return state;
-      }
       const actionSelected = policyFn(state);
       const outcomeSelected = pickRandomWeightedOutcomeBranch(
-        state.branches[getKeyFromAction(actionSelected)]
+        state.edges.getOutcomesWithAgentAction(actionSelected)
       );
       return outcomeSelected;
     },
@@ -63,23 +66,22 @@ export const makeMCTSRepository = <O, A>({
       if (!isExpandable(state)) {
         throw new Error("The node is not expandable. Come back later boy");
       }
-      state.branches = tree.createBranches(state);
+      state.edges = tree.createEdge(state);
 
-      return state;
+      return state as ExpandedMonteCarloTree<O, A>;
     },
   makeSimulation = (dep) => {
-    const simulation = (state: MonteCarloTree<O>): MonteCarloTree<O> => {
+    const simulation = (state: MonteCarloTree<O, A>): MonteCarloTree<O, A> => {
       if (dep.isTerminalState(state)) {
         return state;
       }
-      const newBranches = dep.tree.createBranches(state);
-      const nextState = dep.tree.createTree({
+      const newEdge = dep.tree.createEdge(state);
+      const newState = dep.tree.createExpandedTree({
         ...state,
-        branches: newBranches,
+        edges: newEdge,
       });
-      const actionSelected = dep.rolloutFn(nextState);
-      const selectedBranch =
-        nextState.branches[dep.getKeyFromAction(actionSelected)];
+      const actionSelected = dep.rolloutFn(newState);
+      const selectedBranch = newEdge.getOutcomesWithAgentAction(actionSelected);
       const outcomeSelected = pickRandomWeightedOutcomeBranch(selectedBranch);
 
       return simulation(outcomeSelected);
@@ -88,7 +90,7 @@ export const makeMCTSRepository = <O, A>({
     return simulation;
   },
   makeBackpropagation = ({ rewardFn }) =>
-    (state: MonteCarloTree<O>, terminalState: MonteCarloTree<O>) => {
+    (state: MonteCarloTree<O, A>, terminalState: MonteCarloTree<O, A>) => {
       const reward = rewardFn(terminalState);
       // should we do a gradient descent on the expected value? makeing valueFn a first shot and then we ajust it along the game goes on
       // state.expected_reward =

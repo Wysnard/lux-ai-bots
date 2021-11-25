@@ -3,12 +3,12 @@
 //  O is the observation of the environment (aka the LuxSDK.GameState) = environment state
 //  R is the reward
 export type PolicyFn<S, A> = (state: S) => A; // π : State -> Action - From a state, it gives an action
-export type ValueFn<S, A> = (state: S) => number; // v : Policy(state) -> Reward - From a state or a Policy, it gives a reward
+export type ValueFn<S, A> = (state: S, action: A) => number; // v : Policy(state) -> Expected Reward - From a state or a Policy, it gives a reward
 export type ModelFn<S> = ((state: S) => S) | ((state: S) => number); // m : State -> Action -> State or Reward - From a state, it *predicts* a state and/or a reward
 export type SimulationFn<S, A> = (state: S, actions: A) => S; // s : State -> Action -> State - From a state and an action, it simulate a state.s
 
 // Specific to the agent
-export type UpdateFn<O, S> = (state: S, observation: O) => S; // u : State -> Observation -> Action? -> State - From a state (St) and observation (O), it gives a new state (St+1)
+export type UpdateFn<O, S, SP> = (state: S, observation: O) => SP; // u : State -> Observation -> Action? -> State - From a state (St) and observation (O), it gives a new state (St+1)
 
 // Monte carlo search tree
 // selection - expansion - simulation - backpropagation
@@ -40,6 +40,12 @@ export interface Environment<O> {
 export interface MarkovDecisionProcess<O, S, A> {
   getAction: Function;
   discount_factor: number;
-  transitionProbaFn: (...args: any[]) => any; // compoute the probability that action a in state s in time t will lead to state s'
-  rewardFn: (...args: any[]) => any; // compoute the immediate reward or the immediate reward after transitionning to state s'
+  transitionProbaFn: (...args: any[]) => any; // compute the probability that action a in state s in time t will lead to state s'
+  rewardFn: (...args: any[]) => any; // compute the immediate reward or the immediate reward after transitionning to state s'
+}
+
+// https://en.wikipedia.org/wiki/Partially_observable_Markov_decision_process
+export interface PartiallyObservableMarkovDecisionProcess<O, S, SP, A>
+  extends MarkovDecisionProcess<O, S, A> {
+  updateFn: UpdateFn<O, S, SP>; // update our beliefs about the state
 }

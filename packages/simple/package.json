@@ -1,12 +1,14 @@
 {
   "name": "@lux-ai-bots/simple",
   "scripts": {
+    "test": "",
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
     "battle": "lux-ai-2021"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
+    "@types/ramda": "^0.27.50",
     "nodemon": "^2.0.14",
     "typescript": "^4.4.4"
   },

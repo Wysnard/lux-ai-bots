@@ -1,12 +1,14 @@
 {
   "name": "@lux-ai-bots/basic",
   "scripts": {
+    "test": "",
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
     "start:dev": "tsc --watch --outDir dist"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
+    "@types/ramda": "^0.27.50",
     "nodemon": "^2.0.14",
     "typescript": "^4.4.4"
   },
